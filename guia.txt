@@ -1,0 +1,195 @@
+1-instalar npm init -y
+2-instalar npm i express nodemailer
+3-instalar npm i -D nodemon esto 
+todo esto genera 3 archivos node_modules, package-lock.json y package.json en dependencies esta lo que instalamos
+
+4- ir a package.json y modificar en scrits / "test" por "dev" que es development (produccion)
+
+5-creo server.js
+    const express = require('express');
+    const app = express();
+    const PORT =  process.env.PORT || 5000;
+
+    app.listen(PORT, ()=>{
+        console.log(`server corriendo en puerto ${PORT}`) //se crea las comillas invertidas con ctrl + }
+    })
+    y escribimos npm run dev
+    localhost:5000
+6- creo una carpeta public (publica) y declaramos en server.js
+    const express = require('express');
+    const app = express();
+    const PORT =  process.env.PORT || 5000;
+
+    //middleware (software intermediario)
+    app.use(express.static('public'));
+
+    app.get('/', (req, res)=>{
+        res.send('hola')
+    })
+
+    app.listen(PORT, ()=>{
+        console.log(`server corriendo en puerto localhost:${PORT}`)
+    })
+7-creamos en public los archivos que el cliente va a visualizar es decir los html css etc
+8- ahora en vez de mostrar hola mundo vamos a mostrar el directorio con el archivo de contacto.html
+    const express = require('express');
+    const app = express();
+    const PORT =  process.env.PORT || 5000;
+
+    //middleware (software intermediario)
+    app.use(express.static('public'));
+
+    app.get('/', (req, res)=>{
+        res.sendFile(__dirname + '/public/contacto.html')
+    })
+
+    app.listen(PORT, ()=>{
+        console.log(`server corriendo en puerto localhost:${PORT}`)
+    })
+9-voy al archivo js correspondiente a contacto.html para hacer los llamados de accion en mi caso es script5.js, con estoy vamos a probar
+que funciona el boton del formularioContacto 
+    const formularioContacto = document.querySelector('.formContacto');
+    formularioContacto.addEventListener('submit', (e) =>{
+        e.preventDefault();
+        console.log('Pulso enviar')
+    })
+10-ahora vamos capturar los datos del formularioContacto
+    const formularioContacto = document.querySelector('.formContacto');
+    let nombre = document.getElementById('nombre');
+    let correo = document.getElementById('correo');
+    let asunto = document.getElementById('asunto');
+    let mensaje = document.getElementById('mensaje');
+
+    formularioContacto.addEventListener('submit', (e) =>{
+        e.preventDefault();
+        let dataFormulario = {
+            nombre: nombre.value,
+            correo: correo.value,
+            asunto: asunto.value,
+            mensaje: mensaje.value
+        }
+        console.log(dataFormulario);
+    })
+11-ahora guardo las variables del formulario ajax y validoamos que no este vacio
+    const formularioContacto = document.querySelector('.formContacto');
+    let nombre = document.getElementById('nombre');
+    let correo = document.getElementById('correo');
+    let asunto = document.getElementById('asunto');
+    let mensaje = document.getElementById('mensaje');
+
+    formularioContacto.addEventListener('submit', (e) =>{
+        e.preventDefault();
+        let dataFormulario = {
+            nombre: nombre.value,
+            correo: correo.value,
+            asunto: asunto.value,
+            mensaje: mensaje.value
+        }
+
+        let xhr = new XMLHttpRequest();
+        xhr.open('POST', '/');
+        xhr.setRequestHeader('content-type', 'application/json'); //api
+        xhr.onload = function(){
+        console.log(xhr.responseText);
+            if(xhr.responseText == 'success'){
+                alert('Correo Enviado');
+                nombre.value = "";
+                correo.value = "";
+                asunto.value = "";
+                mensaje.value = ""
+            }else{
+                alert('algo salió mal!')
+            }
+        }
+        xhr.send(JSON.stringify(dataFormulario));
+    })
+12-agreganos la libreria de  app.use(express.json()) al server.js asi asi como el POST
+    app.post('/', (req, res) =>{
+        console.log(req.body)
+    })
+enviamos un msj desde el formulario y verificamos que levante los datos por post en consola de 
+visual estudio code
+13-ahora vamos a crear el transporter de los datos y agregamos la constante de la libreria nodemailer en server.js esto es para gmail
+    const nodemailer = require ('nodemailer');
+    app.post('/', (req, res) =>{
+        console.log(req.body);
+
+    /* esto es para el transporter localhost:*//*
+        const transporter = nodemailer.createTransport({
+            service:'gmail',
+            auth:{
+                user: 'davitehuelche@gmail.com',
+                pass: 'psw' //contraseña temporal eso lo debes de generar en https://myaccount.google.com/apppasswords?pli=1&rapt=AEjHL4NNt4ccGjknUulZMurIZgPMGlI8q_7qORssBCXjfohYG-K2Ce63tPnIt_2y_NXRb8OKnS0zCdtYu4uxpGcIJfEqTmz6Iw
+        }
+            }
+        })
+        const mailOptions ={
+            form: req.body.correo,
+            to: 'webmaster@davidserrano.com.ar',
+            subject: `Mensaje de ${req.body.correo}: ${req.body.asunto}`,
+            text: req.body.mensaje
+        }
+        transporter.sendMail(mailOptions,(error, info)=>{
+            if(error){
+                console.log(error);
+                res.send('Error');
+            }else{
+                console.log('Correo eviado. ' + info.response);
+                res.send('success')
+            }
+        })
+    })
+14- ahora con el protocolo smtp
+
+app.use(express.static('public'));
+app.use(express.json())
+
+app.get('/', (req, res)=>{
+    res.sendFile(__dirname + '/public/contacto.html')
+})
+
+app.post('/', (req, res) =>{
+    console.log(req.body);
+/* esto es para el transporter localhost:*//*
+    const transporter = nodemailer.createTransport({
+        service:'gmail',
+        auth:{
+            user: 'davitehuelche@gmail.com',
+            pass: 'psw' //contraseña temporal eso lo debes de generar en https://myaccount.google.com/apppasswords?pli=1&rapt=AEjHL4NNt4ccGjknUulZMurIZgPMGlI8q_7qORssBCXjfohYG-K2Ce63tPnIt_2y_NXRb8OKnS0zCdtYu4uxpGcIJfEqTmz6Iw
+        }
+    })*/
+/*smtp*/
+    const transporter = nodemailer.createTransport({
+        service:'server',
+        port: 465,
+        secure:false,
+        auth:{
+            user: 'webmaster@davidserrano.com.ar',
+            pass: 'psw'
+        },
+        tls:{
+            rejectUnauthorized: false
+        }
+    })
+
+    const mailOptions ={
+        form: req.body.correo,
+        to: 'webmaster@davidserrano.com.ar',
+        subject: `Mensaje de ${req.body.correo}: ${req.body.asunto}`,
+        text: req.body.mensaje
+    }
+    transporter.sendMail(mailOptions,(error, info)=>{
+        if(error){
+            console.log(error);
+            res.send('Error');
+        }else{
+            console.log('Correo eviado. ' + info.response);
+            res.send('success')
+        }
+    })
+})
+
+app.listen(PORT, ()=>{
+    console.log(`server corriendo en puerto localhost:${PORT}`)
+})
+
